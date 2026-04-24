@@ -2,5 +2,5 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'shortline.proxy.rlwy.net:42946', // Sesuaikan dengan port r.Run di main.go
+  baseURL: 'msmbackend-production-765b.up.railway.app', // Sesuaikan dengan port r.Run di main.go
 });
