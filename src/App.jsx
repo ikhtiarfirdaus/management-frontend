@@ -286,7 +286,7 @@ const App = () => {
         <X size={24} />
       </button>
       
-      <h2 className="text-2xl font-black uppercase mb-6 text-center">Bulk Update</h2>
+      <h2 className="text-2xl font-black uppercase mb-6 text-center">Import CSV</h2>
 
       {/* Tipe Selector */}
       <div className="grid grid-cols-3 gap-2 mb-6">
