@@ -1,6 +1,10 @@
 // src/api.js
 import axios from 'axios';
 
-export const api = axios.create({
-  baseURL: 'https://msmbackend-production-765b.up.railway.app', // Sesuaikan dengan port r.Run di main.go
+const API_URL = import.meta.VITE_API_URL || 'http://localhost:8083';
+
+const api = axios.create({
+  baseURL = API_URL,
 });
+
+export default api;

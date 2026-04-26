@@ -7,6 +7,10 @@ import {
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from './api';
 
+// --- TAMBAHKAN BARIS INI ---
+// Mengambil link dari Environment Variable Vercel, jika tidak ada pakai localhost
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8083';
+
 const App = () => {
   // 1. States
   const [view, setView] = useState("overview");
@@ -57,7 +61,7 @@ const App = () => {
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
-  // 3. Stats (Low Alerts defined as < 3)
+  // 3. Stats
   const totalItems = rawProducts.length;
   const totalStock = rawProducts.reduce((acc, curr) => acc + (curr.stock || 0), 0);
   const lowStockCount = rawProducts.filter(item => item.stock < 3).length;
@@ -75,7 +79,6 @@ const App = () => {
     } catch (err) { alert("Gagal upload CSV."); }
   };
 
-  // Helper to get Status Style based on your rules
   const getStatusStyle = (stock) => {
     if (stock >= 3) return "text-green-600 bg-green-50 border-green-100";
     if (stock === 2) return "text-amber-600 bg-amber-50 border-amber-100";
@@ -159,8 +162,9 @@ const App = () => {
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                   />
                 </div>
+                {/* --- UPDATE DI SINI: PAKAI BASE_URL --- */}
                 <a 
-                  href="http://localhost:8083/stock/export" 
+                  href={`${BASE_URL}/stock/export`} 
                   className="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 font-['Poppins'] uppercase"
                 >
                   <Download size={16} /> Export Stock
@@ -186,7 +190,6 @@ const App = () => {
                     <td><span className="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-bold font-['Poppins']">{item.size}</span></td>
                     <td className="font-black text-xl font-['Poppins']">{item.stock}</td>
                     <td>
-                      {/* UPDATED LOGIC: >=3 Green, =2 Yellow, <2 Red */}
                       <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border font-['Poppins'] ${getStatusStyle(item.stock)}`}>
                         {getStatusLabel(item.stock)}
                       </span>
@@ -207,11 +210,12 @@ const App = () => {
                   <div className="text-[10px] font-black text-slate-300 font-['Poppins'] uppercase tracking-widest">Total {historyData.length} Activities Recorded</div>
                </div>
                
+               {/* --- UPDATE DI SINI: PAKAI BASE_URL --- */}
                <div className="flex flex-wrap gap-2 font-['Poppins']">
-                 <ExportButton url="http://localhost:8083/stock/history/export" label="Transaksi" color="bg-slate-900" />
-                 <ExportButton url="http://localhost:8083/stock/history/export?type=sale" label="Sales" color="bg-red-600" />
-                 <ExportButton url="http://localhost:8083/stock/history/export?type=restock" label="Restock" color="bg-emerald-600" />
-                 <ExportButton url="http://localhost:8083/stock/history/export?type=return" label="Return" color="bg-orange-500" />
+                 <ExportButton url={`${BASE_URL}/stock/history/export`} label="Transaksi" color="bg-slate-900" />
+                 <ExportButton url={`${BASE_URL}/stock/history/export?type=sale`} label="Sales" color="bg-red-600" />
+                 <ExportButton url={`${BASE_URL}/stock/history/export?type=restock`} label="Restock" color="bg-emerald-600" />
+                 <ExportButton url={`${BASE_URL}/stock/history/export?type=return`} label="Return" color="bg-orange-500" />
                </div>
             </div>
             
