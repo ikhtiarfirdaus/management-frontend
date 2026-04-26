@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from './api';
+import Swal from 'sweetalert2';
 
 // --- TAMBAHKAN BARIS INI ---
 // Mengambil link dari Environment Variable Vercel, jika tidak ada pakai localhost
@@ -23,6 +24,10 @@ const App = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 100;
+
+  const [previewData, setPreviewData] = useState([]); // Buat simpan data tabel preview
+  const [selectedFile, setSelectedFile] = useState(null); // Buat simpan file yang dipilih
+  const fileInputRef = useRef(null); // Buat nembak input file
 
   const fileInputRef = useRef(null);
 
@@ -66,18 +71,37 @@ const App = () => {
   const totalStock = rawProducts.reduce((acc, curr) => acc + (curr.stock || 0), 0);
   const lowStockCount = rawProducts.filter(item => item.stock < 3).length;
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      await api.post(`/stock/bulk-${uploadType}`, formData);
-      alert(`Berhasil update ${uploadType}!`);
-      setShowModal(false);
-      fetchData();
-    } catch (err) { alert("Gagal upload CSV."); }
+  const handleFileSelect = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setSelectedFile(file);
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const text = event.target.result;
+    const rows = text.split('\n').slice(0, 6); // Ambil 5 baris buat preview
+    const data = rows.map(row => row.split(','));
+    setPreviewData(data);
   };
+  reader.readAsText(file);
+};
+
+  const handleUploadSubmit = async () => {
+  if (!selectedFile) return;
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  try {
+    Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
+    await api.post(`/stock/bulk-${uploadType}`, formData);
+    
+    Swal.fire('Success!', 'Data Broodis Berhasil Diupdate', 'success');
+    setShowModal(false);
+    setSelectedFile(null);
+    setPreviewData([]);
+    fetchData();
+  } catch (err) {
+    Swal.fire('Error', 'Gagal upload coo, cek format CSV-nya', 'error');
+  }
+};
 
   const getStatusStyle = (stock) => {
     if (stock >= 3) return "text-green-600 bg-green-50 border-green-100";
@@ -256,23 +280,56 @@ const App = () => {
 
       {/* MODAL BULK UPDATE */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 font-['Poppins']">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] p-10 relative shadow-2xl">
-            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-black transition-colors"><X size={24} /></button>
-            <h2 className="text-2xl font-black uppercase tracking-tighter mb-8 text-center font-['Poppins']">Bulk Update</h2>
-            <div className="grid grid-cols-3 gap-2 mb-8 font-['Poppins']">
-              {['restock', 'sale', 'return'].map(t => (
-                <button key={t} onClick={() => setUploadType(t)} className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 font-['Poppins'] ${uploadType === t ? 'bg-black text-white border-black shadow-lg shadow-black/20' : 'border-slate-50 text-slate-400 hover:border-slate-200'}`}>{t}</button>
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+    <div className="bg-white w-full max-w-2xl rounded-[2.5rem] p-10 relative">
+      <button onClick={() => { setShowModal(false); setSelectedFile(null); }} className="absolute top-8 right-8 text-slate-300 hover:text-black">
+        <X size={24} />
+      </button>
+      
+      <h2 className="text-2xl font-black uppercase mb-6 text-center">Bulk Update</h2>
+
+      {/* Tipe Selector */}
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {['restock', 'sale', 'return'].map(t => (
+          <button key={t} onClick={() => setUploadType(t)} className={`py-3 rounded-xl text-[10px] font-black uppercase border-2 ${uploadType === t ? 'bg-black text-white' : 'text-slate-400 border-slate-50'}`}>{t}</button>
+        ))}
+      </div>
+
+      {/* --- UPDATE DI SINI: Logika Preview --- */}
+      {!selectedFile ? (
+        <div onClick={() => fileInputRef.current.click()} className="w-full py-16 border-4 border-dashed border-slate-50 rounded-[2.5rem] flex flex-col items-center gap-4 text-slate-300 cursor-pointer">
+          <Upload size={40} />
+          <span className="font-black text-xs uppercase">Pilih File CSV</span>
+        </div>
+      ) : (
+        <div className="bg-slate-50 p-4 rounded-2xl mb-6 overflow-x-auto">
+          <p className="text-[10px] font-black text-orange-500 mb-2 uppercase">Preview Data (5 Baris):</p>
+          <table className="w-full text-[10px]">
+            <tbody>
+              {previewData.map((row, i) => (
+                <tr key={i} className="border-b border-slate-200">
+                  {row.map((cell, j) => <td key={j} className="py-1 px-1 font-mono">{cell}</td>)}
+                </tr>
               ))}
-            </div>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-            <button onClick={() => fileInputRef.current.click()} className="w-full py-16 border-4 border-dashed border-slate-50 rounded-[2.5rem] flex flex-col items-center gap-4 text-slate-300 hover:border-orange-500 hover:text-orange-500 transition-all group font-['Poppins']">
-              <Upload size={40} className="group-hover:-translate-y-2 transition-transform" />
-              <span className="font-black text-xs uppercase tracking-widest font-['Poppins']">Select CSV File</span>
-            </button>
-          </div>
+            </tbody>
+          </table>
+          <button onClick={() => setSelectedFile(null)} className="mt-4 text-red-500 text-[10px] font-bold uppercase underline">Ganti File</button>
         </div>
       )}
+
+      <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+
+      {/* --- UPDATE DI SINI: Tombol Submit --- */}
+      <button 
+        onClick={handleUploadSubmit}
+        disabled={!selectedFile}
+        className={`w-full py-4 rounded-2xl font-black uppercase mt-4 transition-all ${selectedFile ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+      >
+        Submit to Railway
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };
