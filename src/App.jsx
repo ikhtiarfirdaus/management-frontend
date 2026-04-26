@@ -27,7 +27,7 @@ const App = () => {
 
   const [previewData, setPreviewData] = useState([]); // Buat simpan data tabel preview
   const [selectedFile, setSelectedFile] = useState(null); // Buat simpan file yang dipilih
-  const fileInputRef = useRef(null); // Buat nembak input file
+ 
 
   const fileInputRef = useRef(null);
 
