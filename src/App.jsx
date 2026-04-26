@@ -325,7 +325,7 @@ const App = () => {
         disabled={!selectedFile}
         className={`w-full py-4 rounded-2xl font-black uppercase mt-4 transition-all ${selectedFile ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
       >
-        Submit to Railway
+        Submit 
       </button>
     </div>
   </div>
