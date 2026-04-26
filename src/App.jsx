@@ -130,7 +130,7 @@ const App = () => {
             </div>
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 font-['Poppins']">
               <h3 className="font-bold mb-6 flex items-center gap-2 uppercase text-xs tracking-widest text-slate-400 font-['Poppins']"><TrendingUp size={14}/> Stock Movement Trend</h3>
-              <div className="h-[400px]">
+              <div className="h-[400px] min-h-[400px] w-full">
                 {historyData?.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={historyData}>
